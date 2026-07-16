@@ -1,0 +1,816 @@
+<!DOCTYPE html>
+<html lang="zh-Hant">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>交班本｜佳里奇美醫院 醫療服務組</title>
+<!-- PWA：加到手機桌面 -->
+<link rel="manifest" href="manifest.json">
+<meta name="theme-color" content="#5b2a6b">
+<meta name="mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<meta name="apple-mobile-web-app-title" content="交班本">
+<link rel="apple-touch-icon" href="icon-192.png">
+<link rel="icon" type="image/png" href="icon-192.png">
+<style>
+  :root{
+    --plum:#5b2a6b; --plum-deep:#3f1d4c; --plum-soft:#f2e9f5;
+    --gold:#c9a23a; --ink:#241826; --paper:#faf7fb; --line:#e4d6ea;
+    --ok:#2f7d5b; --ok-soft:#e2f2ea; --muted:#8a7a92;
+    --shadow:0 2px 14px rgba(63,29,76,.10);
+  }
+  *{box-sizing:border-box}
+  html,body{margin:0;padding:0}
+  body{
+    font-family:"Noto Sans TC","Microsoft JhengHei",system-ui,sans-serif;
+    background:
+      radial-gradient(1200px 400px at 100% -10%, #f6ecfa 0%, transparent 60%),
+      var(--paper);
+    color:var(--ink); line-height:1.7; -webkit-text-size-adjust:100%;
+  }
+  header.top{
+    background:linear-gradient(120deg,var(--plum) 0%,var(--plum-deep) 100%);
+    color:#fff; padding:18px 20px; box-shadow:var(--shadow);
+    position:sticky; top:0; z-index:20;
+  }
+  .top-inner{max-width:1080px;margin:0 auto;display:flex;align-items:center;gap:14px;flex-wrap:wrap}
+  .brand{display:flex;flex-direction:column;gap:2px}
+  .brand h1{margin:0;font-size:19px;letter-spacing:1px;font-weight:800}
+  .brand .sub{font-size:12px;opacity:.8;letter-spacing:2px}
+  .whoami{margin-left:auto;display:flex;align-items:center;gap:8px;font-size:13px}
+  .whoami select{
+    font-family:inherit;font-size:14px;padding:6px 10px;border-radius:8px;
+    border:none;background:rgba(255,255,255,.16);color:#fff;font-weight:700;
+  }
+  .whoami select option{color:var(--ink)}
+  .whoami .toollink{font-size:13px;font-weight:700;text-decoration:none;color:#fff;
+    background:rgba(255,255,255,.16);padding:6px 12px;border-radius:8px;transition:.15s;white-space:nowrap}
+  .whoami .toollink:hover{background:rgba(255,255,255,.28)}
+  .wrap{max-width:1080px;margin:0 auto;padding:20px}
+  .toolbar{display:flex;gap:10px;align-items:center;margin-bottom:16px;flex-wrap:wrap}
+  .search{
+    flex:1;min-width:200px;display:flex;align-items:center;gap:8px;
+    background:#fff;border:1px solid var(--line);border-radius:10px;padding:8px 12px;box-shadow:var(--shadow);
+  }
+  .search input{border:none;outline:none;font-family:inherit;font-size:15px;width:100%;background:transparent}
+  .btn{
+    font-family:inherit;font-size:14px;font-weight:700;cursor:pointer;border:none;border-radius:10px;
+    padding:9px 16px;background:var(--plum);color:#fff;box-shadow:var(--shadow);transition:.15s;
+  }
+  .btn:hover{background:var(--plum-deep)}
+  .btn.ghost{background:#fff;color:var(--plum);border:1px solid var(--line)}
+  .btn.ghost:hover{background:var(--plum-soft)}
+  .status{font-size:12px;color:var(--muted)}
+  .day{
+    background:#fff;border:1px solid var(--line);border-radius:14px;margin-bottom:16px;
+    box-shadow:var(--shadow);overflow:hidden;
+  }
+  .day-head{
+    display:flex;align-items:center;gap:12px;padding:14px 18px;cursor:pointer;
+    background:linear-gradient(90deg,var(--plum-soft),#fff);
+  }
+  .day-date{font-weight:800;font-size:17px;color:var(--plum-deep);letter-spacing:.5px}
+  .day-roc{font-size:12px;color:var(--muted);font-weight:600}
+  .day-meta{margin-left:auto;display:flex;gap:8px;align-items:center}
+  .pill{font-size:12px;font-weight:700;padding:3px 10px;border-radius:20px;background:var(--plum-soft);color:var(--plum-deep)}
+  .pill.done{background:var(--ok-soft);color:var(--ok)}
+  .chev{transition:.2s;color:var(--plum);font-size:13px}
+  .day.open .chev{transform:rotate(90deg)}
+  .day-body{display:none;padding:4px 18px 18px}
+  .day.open .day-body{display:block}
+  .ann{border-top:1px dashed var(--line);padding:16px 0}
+  .ann:first-child{border-top:none}
+  .ann-title{font-weight:800;font-size:16px;color:var(--plum-deep);margin:0 0 8px}
+  .ann-body p{margin:4px 0}
+  .ann-body .sep{border:none;border-top:1px solid var(--line);margin:10px 0}
+  .ann-body .ann-table{border-collapse:collapse;margin:10px 0;font-size:14px;width:auto}
+  .ann-body .ann-table th,.ann-body .ann-table td{border:1px solid #b9a5c4;padding:6px 10px;text-align:center}
+  .ann-body .ann-table th{background:var(--plum-soft);color:var(--plum-deep);font-weight:700}
+  .ann-imgs{display:flex;gap:10px;flex-wrap:wrap;margin:12px 0}
+  .ann-imgs img{max-width:200px;max-height:200px;border-radius:8px;border:1px solid var(--line);cursor:zoom-in}
+  .readbar{margin-top:12px;background:var(--plum-soft);border-radius:10px;padding:12px}
+  .readbar-h{display:flex;align-items:center;justify-content:space-between;margin-bottom:8px}
+  .readbar-h b{font-size:13px;color:var(--plum-deep)}
+  .readbar-h .count{font-size:12px;color:var(--muted)}
+  .names{display:grid;grid-template-columns:repeat(auto-fill,minmax(72px,1fr));gap:6px}
+  .name{
+    text-align:center;font-size:13px;font-weight:700;padding:7px 4px;border-radius:8px;cursor:pointer;
+    background:#fff;border:1px solid var(--line);color:var(--muted);transition:.12s;user-select:none;position:relative;
+  }
+  .name:hover{border-color:var(--plum)}
+  .name.read{background:var(--ok);color:#fff;border-color:var(--ok)}
+  .name.read::after{content:"✓";position:absolute;top:2px;right:5px;font-size:10px}
+  .name.me{outline:2px solid var(--gold);outline-offset:1px}
+  .empty{text-align:center;color:var(--muted);padding:40px}
+  /* modal */
+  .modal{position:fixed;inset:0;background:rgba(36,24,38,.55);display:none;align-items:center;justify-content:center;z-index:50;padding:16px}
+  .modal.show{display:flex}
+  .sheet{background:#fff;border-radius:16px;max-width:640px;width:100%;max-height:90vh;overflow:auto;box-shadow:0 20px 60px rgba(0,0,0,.3)}
+  .sheet-h{padding:16px 20px;border-bottom:1px solid var(--line);display:flex;align-items:center;justify-content:space-between;position:sticky;top:0;background:#fff}
+  .sheet-h b{font-size:17px;color:var(--plum-deep)}
+  .sheet-b{padding:20px}
+  .field{margin-bottom:14px}
+  .field label{display:block;font-size:13px;font-weight:700;margin-bottom:5px;color:var(--plum-deep)}
+  .field input,.field textarea{
+    width:100%;font-family:inherit;font-size:15px;padding:10px;border:1px solid var(--line);border-radius:9px;outline:none;
+  }
+  .field input:focus,.field textarea:focus{border-color:var(--plum)}
+  .field textarea{min-height:120px;resize:vertical;line-height:1.7}
+  .hint{font-size:12px;color:var(--muted);margin-top:4px}
+  /* stats */
+  .stats-tabs{display:flex;gap:8px;margin-bottom:16px;flex-wrap:wrap}
+  .stats-tab{font-size:13px;font-weight:700;padding:7px 14px;border-radius:8px;cursor:pointer;
+    border:1px solid var(--line);background:#fff;color:var(--muted)}
+  .stats-tab.active{background:var(--plum);color:#fff;border-color:var(--plum)}
+  .stat-overview{display:grid;grid-template-columns:repeat(auto-fit,minmax(120px,1fr));gap:10px;margin-bottom:18px}
+  .stat-card{background:var(--plum-soft);border-radius:10px;padding:14px;text-align:center}
+  .stat-card .num{font-size:26px;font-weight:800;color:var(--plum-deep);line-height:1.2}
+  .stat-card .lbl{font-size:12px;color:var(--muted);margin-top:2px}
+  .stat-table{width:100%;border-collapse:collapse;font-size:13px;margin-bottom:12px}
+  .stat-table th,.stat-table td{text-align:left;padding:8px 10px;border-bottom:1px solid var(--line);vertical-align:top}
+  .stat-table th{background:var(--plum-soft);color:var(--plum-deep);font-weight:700;position:sticky;top:0}
+  .stat-table td.ttl{font-weight:700;color:var(--plum-deep);white-space:nowrap}
+  .stat-bar{height:7px;border-radius:5px;background:var(--line);overflow:hidden;margin-top:5px;min-width:80px}
+  .stat-bar span{display:block;height:100%;background:var(--ok);border-radius:5px}
+  .miss-names{color:var(--warn);font-size:12px;line-height:1.9}
+  .miss-none{color:var(--ok);font-size:12px;font-weight:700}
+  .person-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(150px,1fr));gap:8px}
+  .person-row{border:1px solid var(--line);border-radius:9px;padding:10px 12px}
+  .person-row .pn{font-weight:800;color:var(--plum-deep);margin-bottom:3px}
+  .person-row .pd{font-size:12px;color:var(--muted)}
+  .person-row.behind{border-color:var(--warn);background:#fbeee7}
+  .person-row.behind .pd{color:var(--warn);font-weight:700}
+  .imgzoom{position:fixed;inset:0;background:rgba(0,0,0,.85);display:none;align-items:center;justify-content:center;z-index:60;cursor:zoom-out}
+  .imgzoom.show{display:flex}
+  .imgzoom img{max-width:94vw;max-height:94vh;border-radius:8px}
+  .x{cursor:pointer;font-size:22px;color:var(--muted);border:none;background:none}
+  footer{text-align:center;color:var(--muted);font-size:12px;padding:24px}
+  /* 年份大分頁 */
+  .year{background:#fff;border:1px solid var(--line);border-radius:14px;margin-bottom:16px;box-shadow:var(--shadow);overflow:hidden}
+  .year-head{display:flex;align-items:center;gap:12px;padding:16px 20px;cursor:pointer;
+    background:linear-gradient(90deg,var(--plum),var(--plum-deep));color:#fff}
+  .year-head .yn{font-weight:800;font-size:20px;letter-spacing:1px}
+  .year-head .ym{margin-left:auto;font-size:13px;opacity:.85}
+  .year-head .ychev{transition:.2s;font-size:14px}
+  .year.open .ychev{transform:rotate(90deg)}
+  .year-body{display:none;padding:12px}
+  .year.open .year-body{display:block}
+  .year-body .day{margin-bottom:12px}
+  .year-body .day:last-child{margin-bottom:0}
+  /* 管理者操作 */
+  .admin-only{display:none}
+  body.is-admin .admin-only{display:inline-flex}
+  .ann-actions{display:flex;gap:8px;margin-top:10px}
+  .day-adminbar{display:none;margin-bottom:12px;padding-bottom:10px;border-bottom:1px dashed var(--line)}
+  body.is-admin .day-adminbar{display:flex}
+  .mini-btn{font-family:inherit;font-size:12px;font-weight:700;cursor:pointer;border:1px solid var(--line);
+    background:#fff;color:var(--plum);border-radius:7px;padding:5px 12px;transition:.12s}
+  .mini-btn:hover{background:var(--plum-soft)}
+  .mini-btn.danger{color:var(--warn);border-color:#f0cbb8}
+  .mini-btn.danger:hover{background:#fbeee7}
+  .toollink.admin-btn{cursor:pointer;border:none}
+  /* 人員管理 */
+  .staff-list{display:flex;flex-direction:column;gap:8px;margin-bottom:14px}
+  .staff-item{display:flex;align-items:center;gap:10px;padding:9px 12px;border:1px solid var(--line);border-radius:9px}
+  .staff-item .sn{font-weight:700;color:var(--plum-deep)}
+  .staff-item .badge-admin{font-size:11px;font-weight:700;padding:2px 8px;border-radius:20px;background:var(--gold);color:#fff}
+  .staff-item .sp{margin-left:auto;display:flex;gap:6px}
+  .staff-add{display:flex;gap:8px;margin-bottom:14px}
+  .staff-add input{flex:1;font-family:inherit;font-size:15px;padding:9px 10px;border:1px solid var(--line);border-radius:9px}
+  .lock-note{background:#fbeee7;color:var(--warn);border-radius:9px;padding:12px;font-size:13px;font-weight:700;text-align:center}
+  @media(max-width:600px){
+    .names{grid-template-columns:repeat(auto-fill,minmax(60px,1fr))}
+    .brand h1{font-size:16px}
+  }
+</style>
+</head>
+<body>
+<header class="top">
+  <div class="top-inner">
+    <div class="brand">
+      <h1>交班本</h1>
+      <span class="sub">佳里奇美醫院 · 醫療服務組</span>
+    </div>
+    <div class="whoami">
+      <a class="toollink" href="import-tool.html">📥 匯入工具</a>
+      <span>我是</span>
+      <select id="whoSelect"></select>
+    </div>
+  </div>
+</header>
+
+<div class="wrap">
+  <div class="toolbar">
+    <div class="search">
+      <span>🔍</span>
+      <input id="searchInput" placeholder="搜尋公告內容 / 日期…">
+    </div>
+    <button class="btn ghost" id="filterUnreadBtn">只看我未閱</button>
+    <button class="btn ghost" id="statsBtn">📊 統計表</button>
+    <button class="btn ghost admin-only" id="staffBtn">👥 人員管理</button>
+    <button class="btn" id="newBtn">＋ 新增交班</button>
+  </div>
+  <div class="status" id="status">載入中…</div>
+  <div id="list"></div>
+  <div class="empty" id="empty" style="display:none">目前沒有符合的交班。</div>
+</div>
+
+<!-- new announcement modal -->
+<div class="modal" id="newModal">
+  <div class="sheet">
+    <div class="sheet-h"><b>新增交班</b><button class="x" onclick="closeNew()">✕</button></div>
+    <div class="sheet-b">
+      <div class="field">
+        <label>日期</label>
+        <input type="date" id="f_date">
+      </div>
+      <div class="field">
+        <label>公告標題</label>
+        <input id="f_title" placeholder="例如：關於新表單啟用">
+      </div>
+      <div class="field">
+        <label>公告內容</label>
+        <textarea id="f_body" placeholder="一行一段，直接貼上即可。"></textarea>
+      </div>
+      <div class="field">
+        <label>圖片網址（選填，一行一個）</label>
+        <textarea id="f_imgs" style="min-height:60px" placeholder="https://圖床網址/xxx.jpg"></textarea>
+        <div class="hint">圖片請先上傳到圖床或 GitHub，貼網址即可，避免檔案過大。</div>
+      </div>
+      <button class="btn" style="width:100%" id="saveNewBtn">送出交班</button>
+    </div>
+  </div>
+</div>
+
+<!-- stats modal -->
+<div class="modal" id="statsModal">
+  <div class="sheet" style="max-width:760px">
+    <div class="sheet-h"><b>📊 簽到統計表</b><button class="x" onclick="closeStats()">✕</button></div>
+    <div class="sheet-b" id="statsBody"></div>
+  </div>
+</div>
+
+<!-- staff management modal -->
+<div class="modal" id="staffModal">
+  <div class="sheet" style="max-width:560px">
+    <div class="sheet-h"><b>👥 人員管理</b><button class="x" onclick="closeStaff()">✕</button></div>
+    <div class="sheet-b">
+      <div class="hint" style="margin-bottom:12px">新增或移除同事，並可指定管理者（管理者才能修改／刪除交班、管理人員）。移除某人時，會一併清除他過去的簽名紀錄。</div>
+      <div class="staff-add">
+        <input id="newStaffName" placeholder="輸入新同事名字…" maxlength="10">
+        <button class="btn" id="addStaffBtn">＋ 新增</button>
+      </div>
+      <div class="staff-list" id="staffList"></div>
+      <button class="btn ok" style="width:100%" id="saveStaffBtn">儲存人員設定</button>
+      <div class="status" id="staffStatus" style="text-align:center"></div>
+    </div>
+  </div>
+</div>
+
+<!-- edit announcement modal -->
+<div class="modal" id="editModal">
+  <div class="sheet">
+    <div class="sheet-h"><b>編輯交班</b><button class="x" onclick="closeEdit()">✕</button></div>
+    <div class="sheet-b">
+      <div class="field">
+        <label>公告標題</label>
+        <input id="e_title">
+      </div>
+      <div class="field">
+        <label>公告內容</label>
+        <textarea id="e_body"></textarea>
+      </div>
+      <div class="field">
+        <label>圖片網址（一行一個）</label>
+        <textarea id="e_imgs" style="min-height:60px"></textarea>
+      </div>
+      <button class="btn" style="width:100%" id="saveEditBtn">儲存修改</button>
+      <div class="status" id="editStatus" style="text-align:center"></div>
+    </div>
+  </div>
+</div>
+
+<div class="imgzoom" id="imgzoom" onclick="this.classList.remove('show')"><img id="imgzoomImg"></div>
+
+<footer>交班本 · 一天一頁 · 點自己名字＝已閱　｜　資料存於 GitHub，多人即時共用</footer>
+
+<script src="seed.js"></script>
+<script>
+/* ========= 設定 ========= */
+// 部署 Apps Script 後，把 /exec 網址貼在這裡，即可多人共用即時資料。
+// 留空時使用內建的 7 天歷史資料（唯讀，重整不保存）。
+const API_URL = ''; // 例如 'https://script.google.com/macros/s/XXXX/exec'
+
+/* ========= 狀態 ========= */
+let DATA = null;          // {staff:[], pages:[]}
+let ME = localStorage.getItem('handover_me') || '';
+let onlyUnread = false;
+let keyword = '';
+
+/* ========= 工具 ========= */
+function rocDate(iso){ // 2026-01-20 -> 115.01.20
+  const [y,m,d]=iso.split('-'); return (parseInt(y)-1911)+'.'+m+'.'+d;
+}
+function esc(s){return (s||'').replace(/[&<>]/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;'}[c]));}
+function nowISO(){return new Date().toISOString();}
+
+/* ========= 載入 ========= */
+async function load(){
+  const st=document.getElementById('status');
+  if(API_URL){
+    try{
+      st.textContent='與伺服器同步中…';
+      // 加時間戳 + no-store，強制每次都抓最新，避免瀏覽器/GitHub 快取
+      const res=await fetch(API_URL+'?t='+Date.now(),{cache:'no-store'});
+      const j=await res.json();
+      if(j.success){
+        DATA=j.data;
+        st.textContent='已同步 · '+DATA.pages.length+' 天交班';
+        // 成功抓到 → 存一份到本地，供斷線時使用
+        try{
+          localStorage.setItem('handover_cache', JSON.stringify(DATA));
+          localStorage.setItem('handover_cache_time', Date.now().toString());
+        }catch(e){
+          // 太大存不下 → 改存不含圖片的精簡版（斷線時文字仍可看）
+          try{
+            const slim=JSON.parse(JSON.stringify(DATA));
+            slim.pages.forEach(p=>p.announcements.forEach(a=>{a.images=[];}));
+            localStorage.setItem('handover_cache', JSON.stringify(slim));
+            localStorage.setItem('handover_cache_time', Date.now().toString());
+          }catch(e2){ /* 還是存不下就放棄快取 */ }
+        }
+      }
+      else throw new Error(j.error||'讀取失敗');
+    }catch(e){
+      // 斷線／連不到 → 優先拿本地上次成功的快取
+      const cached=localStorage.getItem('handover_cache');
+      if(cached){
+        try{
+          DATA=JSON.parse(cached);
+          const t=parseInt(localStorage.getItem('handover_cache_time')||'0');
+          const when=t?new Date(t).toLocaleString('zh-TW',{month:'numeric',day:'numeric',hour:'2-digit',minute:'2-digit'}):'先前';
+          st.className='status'; st.textContent='📴 目前離線，顯示上次同步的資料（'+when+'）· 恢復網路後重整即為最新';
+        }catch(err){ DATA=window.SEED_DATA; st.textContent='⚠ 無法連線，顯示內建歷史資料：'+e.message; }
+      }else{
+        DATA=window.SEED_DATA;
+        st.textContent='⚠ 無法連線伺服器（也沒有離線暫存），顯示內建歷史資料：'+e.message;
+      }
+    }
+  }else{
+    DATA=window.SEED_DATA;
+    st.textContent='示範模式 · 內建 '+DATA.pages.length+' 天歷史資料（設定 API_URL 後即可多人共用並保存）';
+  }
+  if(!DATA.admins) DATA.admins=['丁丁'];  // 相容舊資料
+  initWho();
+  render();
+}
+
+function isAdmin(){ return ME && DATA.admins && DATA.admins.indexOf(ME)!==-1; }
+function refreshAdminUI(){ document.body.classList.toggle('is-admin', isAdmin()); }
+
+function initWho(){
+  const sel=document.getElementById('whoSelect');
+  sel.innerHTML='<option value="">請選擇…</option>'+DATA.staff.map(n=>`<option ${n===ME?'selected':''}>${n}</option>`).join('');
+  sel.onchange=()=>{ME=sel.value;localStorage.setItem('handover_me',ME);refreshAdminUI();render();};
+  refreshAdminUI();
+}
+
+/* ========= 已閱 ========= */
+async function toggleRead(pageDate, annId){
+  if(!ME){alert('請先在右上角選擇「我是」誰');return;}
+  // 找到該公告
+  const page=DATA.pages.find(p=>p.date===pageDate);
+  const ann=page.announcements.find(a=>a.id===annId);
+  const already=ann.read && ann.read[ME];
+  if(already){ delete ann.read[ME]; }
+  else { ann.read=ann.read||{}; ann.read[ME]=nowISO(); }
+  render();
+  if(API_URL){
+    try{
+      await fetch(API_URL,{
+        method:'POST',
+        headers:{'Content-Type':'text/plain;charset=utf-8'},
+        body:JSON.stringify({action:'read', date:pageDate, annId, name:ME, on:!already})
+      });
+    }catch(e){ document.getElementById('status').textContent='⚠ 已閱同步失敗，稍後重試'; }
+  }
+}
+
+/* ========= 新增 ========= */
+function openNew(){
+  document.getElementById('f_date').value=new Date().toISOString().slice(0,10);
+  document.getElementById('f_title').value='';
+  document.getElementById('f_body').value='';
+  document.getElementById('f_imgs').value='';
+  document.getElementById('newModal').classList.add('show');
+}
+function closeNew(){document.getElementById('newModal').classList.remove('show');}
+
+async function saveNew(){
+  const date=document.getElementById('f_date').value;
+  const title=document.getElementById('f_title').value.trim();
+  const bodyRaw=document.getElementById('f_body').value.trim();
+  const imgsRaw=document.getElementById('f_imgs').value.trim();
+  if(!date||!title){alert('請填日期與標題');return;}
+  const body=bodyRaw?bodyRaw.split('\n').map(s=>s.trim()).filter(Boolean):[];
+  const images=imgsRaw?imgsRaw.split('\n').map(s=>s.trim()).filter(Boolean):[];
+  const ann={id:date+'-'+Date.now(), title, body, images, read:{}};
+
+  let page=DATA.pages.find(p=>p.date===date);
+  if(!page){page={date,source:'web',announcements:[]};DATA.pages.push(page);}
+  page.announcements.push(ann);
+  DATA.pages.sort((a,b)=>b.date.localeCompare(a.date));
+  closeNew(); render();
+
+  if(API_URL){
+    try{
+      const res=await fetch(API_URL,{
+        method:'POST',
+        headers:{'Content-Type':'text/plain;charset=utf-8'},
+        body:JSON.stringify({action:'add', date, ann})
+      });
+      const j=await res.json();
+      if(!j.success) throw new Error(j.error);
+      document.getElementById('status').textContent='已送出並保存 ✓';
+    }catch(e){ document.getElementById('status').textContent='⚠ 保存失敗（僅本機顯示）：'+e.message; }
+  }else{
+    document.getElementById('status').textContent='示範模式：新增僅本機顯示，重整後消失（設定 API_URL 才會保存）';
+  }
+}
+
+/* ========= 顯示 ========= */
+function dayHTML(page, kw){
+  let anns=page.announcements;
+  if(kw){
+    anns=anns.filter(a=>(a.title+' '+a.body.join(' ')+' '+page.date+' '+rocDate(page.date)).includes(kw));
+  }
+  if(onlyUnread && ME){
+    anns=anns.filter(a=>!(a.read&&a.read[ME]));
+  }
+  if(anns.length===0) return '';
+
+  const total=DATA.staff.length;
+  const dayReadByMe = page.announcements.every(a=>a.read&&a.read[ME]);
+  const annHTML=anns.map(a=>{
+    const readNames=a.read?Object.keys(a.read):[];
+    const cnt=readNames.length;
+    const bodyHTML=a.body.map(line=>{
+      if(typeof line==='string' && line.indexOf('\u0000TABLE\u0000')===0) return line.slice(7);
+      if(/^-{5,}$/.test(line)||/^={5,}$/.test(line)) return '<hr class="sep">';
+      return '<p>'+esc(line)+'</p>';
+    }).join('');
+    const imgHTML=(a.images&&a.images.length)?
+      '<div class="ann-imgs">'+a.images.map(u=>`<img src="${esc(u)}" onclick="zoom('${esc(u)}')" alt="附圖">`).join('')+'</div>':'';
+    const nameCells=DATA.staff.map(n=>{
+      const isRead=a.read&&a.read[n];
+      const cls='name'+(isRead?' read':'')+(n===ME?' me':'');
+      const tip=isRead?('已閱 '+new Date(a.read[n]).toLocaleString('zh-TW',{month:'numeric',day:'numeric',hour:'2-digit',minute:'2-digit'})):'點擊標記已閱';
+      return `<div class="${cls}" title="${tip}" onclick="toggleRead('${page.date}','${a.id}')">${n}</div>`;
+    }).join('');
+    const adminActions=`<div class="ann-actions admin-only">
+        <button class="mini-btn" onclick="openEdit('${page.date}','${a.id}')">✏️ 編輯</button>
+        <button class="mini-btn danger" onclick="deleteAnn('${page.date}','${a.id}')">🗑️ 刪除</button>
+      </div>`;
+    return `<div class="ann">
+      <p class="ann-title">${esc(a.title)}</p>
+      <div class="ann-body">${bodyHTML}</div>
+      ${imgHTML}
+      <div class="readbar">
+        <div class="readbar-h"><b>已閱簽名</b><span class="count">${cnt}/${total} 人</span></div>
+        <div class="names">${nameCells}</div>
+      </div>
+      ${adminActions}
+    </div>`;
+  }).join('');
+
+  const pillDone = ME && dayReadByMe;
+  const dayAdminBar=`<div class="day-adminbar admin-only">
+      <button class="mini-btn" onclick="event.stopPropagation();signAllDay('${page.date}')">✅ 全員一鍵簽閱（整天）</button>
+    </div>`;
+  return `<div class="day">
+    <div class="day-head" onclick="this.parentElement.classList.toggle('open')">
+      <span class="day-date">${page.date}</span>
+      <span class="day-roc">民國 ${rocDate(page.date)}</span>
+      <div class="day-meta">
+        <span class="pill">${page.announcements.length} 則</span>
+        ${ME?`<span class="pill ${pillDone?'done':''}">${pillDone?'我已全閱 ✓':'我有未閱'}</span>`:''}
+        <span class="chev">▶</span>
+      </div>
+    </div>
+    <div class="day-body">${dayAdminBar}${annHTML}</div>
+  </div>`;
+}
+
+function render(){
+  const list=document.getElementById('list');
+  const empty=document.getElementById('empty');
+  const pages=[...DATA.pages].sort((a,b)=>b.date.localeCompare(a.date));
+  const kw=keyword.trim();
+
+  // 依年份分組
+  const byYear={};
+  pages.forEach(p=>{
+    const y=p.date.slice(0,4);
+    (byYear[y]=byYear[y]||[]).push(p);
+  });
+  const years=Object.keys(byYear).sort((a,b)=>b.localeCompare(a));
+
+  let html='';
+  let shown=0;
+  const latestYear=years[0];
+
+  years.forEach(y=>{
+    // 該年所有天的 HTML
+    let daysHTML='';
+    let yearDayCount=0, yearAnnCount=0;
+    byYear[y].forEach(page=>{
+      const d=dayHTML(page,kw);
+      if(d){ daysHTML+=d; yearDayCount++; yearAnnCount+=page.announcements.length; }
+    });
+    if(!daysHTML) return;
+    shown++;
+    const roc=parseInt(y)-1911;
+    // 搜尋時、或最新年份，預設展開
+    const openYear=(kw||y===latestYear)?'open':'';
+    html+=`<div class="year ${openYear}">
+      <div class="year-head" onclick="this.parentElement.classList.toggle('open')">
+        <span class="yn">${y} 年</span>
+        <span style="font-size:12px;opacity:.8">民國 ${roc}</span>
+        <span class="ym">${yearDayCount} 天 · ${yearAnnCount} 則</span>
+        <span class="ychev">▶</span>
+      </div>
+      <div class="year-body">${daysHTML}</div>
+    </div>`;
+  });
+
+  list.innerHTML=html;
+  empty.style.display=shown?'none':'block';
+  // 展開最新年份裡的第一天
+  const firstYear=list.querySelector('.year.open');
+  if(firstYear){ const fd=firstYear.querySelector('.day'); if(fd && !kw) fd.classList.add('open'); }
+  refreshAdminUI();
+}
+
+function zoom(u){document.getElementById('imgzoomImg').src=u;document.getElementById('imgzoom').classList.add('show');}
+
+/* ========= 統計表 ========= */
+let statsView='byDay';
+function openStats(){document.getElementById('statsModal').classList.add('show');renderStats();}
+function closeStats(){document.getElementById('statsModal').classList.remove('show');}
+
+function allAnns(){
+  const list=[];
+  DATA.pages.forEach(p=>p.announcements.forEach(a=>list.push({page:p,ann:a})));
+  return list;
+}
+function renderStats(){
+  const total=DATA.staff.length;
+  const items=allAnns();
+  const annCount=items.length;
+  // 整體：所有公告的簽名率平均
+  let sumRead=0; items.forEach(x=>sumRead+=Object.keys(x.ann.read||{}).length);
+  const avgRate= annCount? Math.round(sumRead/(annCount*total)*100):0;
+  // 完全簽完的公告數
+  const fullSigned=items.filter(x=>Object.keys(x.ann.read||{}).length===total).length;
+
+  const overview=`<div class="stat-overview">
+    <div class="stat-card"><div class="num">${DATA.pages.length}</div><div class="lbl">交班天數</div></div>
+    <div class="stat-card"><div class="num">${annCount}</div><div class="lbl">公告則數</div></div>
+    <div class="stat-card"><div class="num">${avgRate}%</div><div class="lbl">平均簽到率</div></div>
+    <div class="stat-card"><div class="num">${fullSigned}/${annCount}</div><div class="lbl">全員簽完</div></div>
+  </div>`;
+
+  const tabs=`<div class="stats-tabs">
+    <div class="stats-tab ${statsView==='byDay'?'active':''}" onclick="setStatsView('byDay')">依公告看未簽名單</div>
+    <div class="stats-tab ${statsView==='byPerson'?'active':''}" onclick="setStatsView('byPerson')">依人看漏簽</div>
+  </div>`;
+
+  let body='';
+  if(statsView==='byDay'){
+    // 每則一列：已簽 x/19、進度條、未簽名單
+    let rows='';
+    DATA.pages.forEach(p=>{
+      p.announcements.forEach(a=>{
+        const readNames=Object.keys(a.read||{});
+        const cnt=readNames.length;
+        const missing=DATA.staff.filter(n=>!(a.read&&a.read[n]));
+        const pct=Math.round(cnt/total*100);
+        rows+=`<tr>
+          <td class="ttl">${p.date}<br><span style="font-weight:400;color:var(--muted);font-size:11px">${esc(a.title).slice(0,18)}</span></td>
+          <td style="white-space:nowrap">${cnt}/${total}<div class="stat-bar"><span style="width:${pct}%"></span></div></td>
+          <td>${missing.length? '<span class="miss-names">'+missing.join('、')+'</span>' : '<span class="miss-none">✓ 全員已簽</span>'}</td>
+        </tr>`;
+      });
+    });
+    body=`<table class="stat-table">
+      <thead><tr><th>日期 / 公告</th><th>已簽</th><th>未簽名單</th></tr></thead>
+      <tbody>${rows}</tbody></table>`;
+  }else{
+    // 每人一格：漏簽幾則、哪幾天
+    const rows=DATA.staff.map(n=>{
+      const missed=[];
+      DATA.pages.forEach(p=>p.announcements.forEach(a=>{
+        if(!(a.read&&a.read[n])) missed.push(p.date);
+      }));
+      const uniqDays=[...new Set(missed)];
+      const behind=missed.length>0;
+      return `<div class="person-row ${behind?'behind':''}">
+        <div class="pn">${n}</div>
+        <div class="pd">${behind? '漏簽 '+missed.length+' 則（'+uniqDays.length+' 天）' : '✓ 全部簽完'}</div>
+      </div>`;
+    }).join('');
+    body=`<div class="person-grid">${rows}</div>`;
+  }
+  document.getElementById('statsBody').innerHTML=overview+tabs+body;
+}
+function setStatsView(v){statsView=v;renderStats();}
+
+/* ========= 編輯交班（限管理者） ========= */
+let editing=null; // {date, annId}
+function openEdit(date, annId){
+  if(!isAdmin()){alert('只有管理者能編輯');return;}
+  const page=DATA.pages.find(p=>p.date===date);
+  const ann=page.announcements.find(a=>a.id===annId);
+  if(!ann)return;
+  editing={date, annId};
+  document.getElementById('e_title').value=ann.title||'';
+  document.getElementById('e_body').value=(ann.body||[]).join('\n');
+  document.getElementById('e_imgs').value=(ann.images||[]).join('\n');
+  document.getElementById('editStatus').textContent='';
+  document.getElementById('editModal').classList.add('show');
+}
+function closeEdit(){document.getElementById('editModal').classList.remove('show');editing=null;}
+async function saveEdit(){
+  if(!editing)return;
+  const title=document.getElementById('e_title').value.trim();
+  const body=document.getElementById('e_body').value.trim();
+  const imgs=document.getElementById('e_imgs').value.trim();
+  if(!title){alert('標題不能空白');return;}
+  const page=DATA.pages.find(p=>p.date===editing.date);
+  const ann=page.announcements.find(a=>a.id===editing.annId);
+  ann.title=title;
+  ann.body=body?body.split('\n').map(s=>s.trim()).filter(Boolean):[];
+  ann.images=imgs?imgs.split('\n').map(s=>s.trim()).filter(Boolean):[];
+  render();
+  if(API_URL){
+    const st=document.getElementById('editStatus');
+    st.textContent='儲存中…';
+    try{
+      const res=await fetch(API_URL,{method:'POST',headers:{'Content-Type':'text/plain;charset=utf-8'},
+        body:JSON.stringify({action:'editAnn', date:editing.date, annId:editing.annId, title:ann.title, annBody:ann.body, images:ann.images})});
+      const j=await res.json();
+      if(!j.success)throw new Error(j.error);
+      closeEdit();
+    }catch(e){ st.className='status err'; st.textContent='儲存失敗：'+e.message; }
+  }else{ closeEdit(); }
+}
+
+/* ========= 刪除交班（限管理者） ========= */
+async function deleteAnn(date, annId){
+  if(!isAdmin()){alert('只有管理者能刪除');return;}
+  const page=DATA.pages.find(p=>p.date===date);
+  const ann=page.announcements.find(a=>a.id===annId);
+  if(!ann)return;
+  if(!confirm('確定要刪除這則交班嗎？\n\n「'+(ann.title||'').slice(0,30)+'」\n\n刪除後無法復原。'))return;
+  // 本機移除
+  page.announcements=page.announcements.filter(a=>a.id!==annId);
+  if(page.announcements.length===0) DATA.pages=DATA.pages.filter(p=>p.date!==date);
+  render();
+  if(API_URL){
+    try{
+      const res=await fetch(API_URL,{method:'POST',headers:{'Content-Type':'text/plain;charset=utf-8'},
+        body:JSON.stringify({action:'deleteAnn', date, annId})});
+      const j=await res.json();
+      if(!j.success)throw new Error(j.error);
+      document.getElementById('status').textContent='已刪除 ✓';
+    }catch(e){ document.getElementById('status').textContent='⚠ 刪除同步失敗：'+e.message; }
+  }
+}
+
+/* ========= 全員一鍵簽閱（整天，限管理者） ========= */
+async function signAllDay(date){
+  if(!isAdmin()){alert('只有管理者能一鍵簽閱');return;}
+  const page=DATA.pages.find(p=>p.date===date);
+  if(!page)return;
+  const total=page.announcements.length;
+  if(!confirm('確定要把 '+date+' 這天的全部 '+total+' 則交班，幫「所有人」都補上已閱嗎？\n\n這會蓋上全單位每個人的簽名，通常用於補登舊交班。')) return;
+  const now=new Date().toISOString();
+  // 本機：該天每則、每人補上已閱（已簽的保留原時間）
+  page.announcements.forEach(a=>{
+    a.read=a.read||{};
+    DATA.staff.forEach(n=>{ if(!a.read[n]) a.read[n]=now; });
+  });
+  render();
+  if(API_URL){
+    document.getElementById('status').textContent='一鍵簽閱同步中…';
+    try{
+      const res=await fetch(API_URL,{method:'POST',headers:{'Content-Type':'text/plain;charset=utf-8'},
+        body:JSON.stringify({action:'signAllDay', date, at:now})});
+      const j=await res.json();
+      if(!j.success)throw new Error(j.error);
+      document.getElementById('status').textContent='已為 '+date+' 全員補簽 ✓';
+    }catch(e){ document.getElementById('status').textContent='⚠ 一鍵簽閱同步失敗：'+e.message; }
+  }
+}
+
+
+/* ========= 人員管理（限管理者） ========= */
+let staffDraft=null, adminsDraft=null;
+function openStaff(){
+  if(!isAdmin()){alert('只有管理者能管理人員');return;}
+  staffDraft=[...DATA.staff];
+  adminsDraft=[...(DATA.admins||[])];
+  document.getElementById('staffStatus').textContent='';
+  renderStaffList();
+  document.getElementById('staffModal').classList.add('show');
+}
+function closeStaff(){document.getElementById('staffModal').classList.remove('show');}
+function renderStaffList(){
+  const box=document.getElementById('staffList');
+  box.innerHTML=staffDraft.map((n,i)=>{
+    const isA=adminsDraft.indexOf(n)!==-1;
+    return `<div class="staff-item">
+      <span class="sn">${esc(n)}</span>
+      ${isA?'<span class="badge-admin">管理者</span>':''}
+      <div class="sp">
+        <button class="mini-btn" onclick="toggleAdmin(${i})">${isA?'取消管理者':'設為管理者'}</button>
+        <button class="mini-btn danger" onclick="removeStaff(${i})">移除</button>
+      </div>
+    </div>`;
+  }).join('');
+}
+function toggleAdmin(i){
+  const n=staffDraft[i];
+  const idx=adminsDraft.indexOf(n);
+  if(idx===-1) adminsDraft.push(n); else adminsDraft.splice(idx,1);
+  renderStaffList();
+}
+function removeStaff(i){
+  const n=staffDraft[i];
+  if(!confirm('移除「'+n+'」？\n他過去簽過的紀錄也會一併清除。'))return;
+  staffDraft.splice(i,1);
+  const ai=adminsDraft.indexOf(n); if(ai!==-1)adminsDraft.splice(ai,1);
+  renderStaffList();
+}
+function addStaff(){
+  const inp=document.getElementById('newStaffName');
+  const n=inp.value.trim();
+  if(!n)return;
+  if(staffDraft.indexOf(n)!==-1){alert('已有同名人員');return;}
+  staffDraft.push(n);
+  inp.value='';
+  renderStaffList();
+}
+async function saveStaff(){
+  if(adminsDraft.length===0){
+    if(!confirm('目前沒有任何管理者，儲存後將沒有人能再管理。確定嗎？'))return;
+  }
+  DATA.staff=[...staffDraft];
+  DATA.admins=[...adminsDraft];
+  // 本機清掉被移除者的簽名
+  const set={}; DATA.staff.forEach(n=>set[n]=1);
+  DATA.pages.forEach(p=>p.announcements.forEach(a=>{
+    if(a.read)Object.keys(a.read).forEach(n=>{if(!set[n])delete a.read[n];});
+  }));
+  initWho(); render();
+  const st=document.getElementById('staffStatus');
+  if(API_URL){
+    st.className='status busy'; st.textContent='儲存中…';
+    try{
+      const res=await fetch(API_URL,{method:'POST',headers:{'Content-Type':'text/plain;charset=utf-8'},
+        body:JSON.stringify({action:'setStaff', staff:DATA.staff, admins:DATA.admins})});
+      const j=await res.json();
+      if(!j.success)throw new Error(j.error);
+      st.className='status ok'; st.textContent='已儲存 ✓';
+      setTimeout(closeStaff,700);
+    }catch(e){ st.className='status err'; st.textContent='儲存失敗：'+e.message; }
+  }else{ closeStaff(); }
+}
+
+/* ========= 綁定 ========= */
+document.getElementById('searchInput').oninput=e=>{keyword=e.target.value;render();};
+document.getElementById('filterUnreadBtn').onclick=e=>{
+  if(!ME){alert('請先選擇「我是」誰');return;}
+  onlyUnread=!onlyUnread;
+  e.target.textContent=onlyUnread?'顯示全部':'只看我未閱';
+  e.target.classList.toggle('ghost',!onlyUnread);
+  render();
+};
+document.getElementById('newBtn').onclick=openNew;
+document.getElementById('saveNewBtn').onclick=saveNew;
+document.getElementById('newModal').onclick=e=>{if(e.target.id==='newModal')closeNew();};
+document.getElementById('statsBtn').onclick=openStats;
+document.getElementById('statsModal').onclick=e=>{if(e.target.id==='statsModal')closeStats();};
+document.getElementById('staffBtn').onclick=openStaff;
+document.getElementById('staffModal').onclick=e=>{if(e.target.id==='staffModal')closeStaff();};
+document.getElementById('addStaffBtn').onclick=addStaff;
+document.getElementById('saveStaffBtn').onclick=saveStaff;
+document.getElementById('newStaffName').onkeydown=e=>{if(e.key==='Enter')addStaff();};
+document.getElementById('saveEditBtn').onclick=saveEdit;
+document.getElementById('editModal').onclick=e=>{if(e.target.id==='editModal')closeEdit();};
+
+load();
+</script>
+</body>
+</html>
